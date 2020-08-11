@@ -20,9 +20,20 @@ class Sidebar extends React.Component{
         this.props.loadSearchList(searchText);
     }
 
+    handleDelete = async (id) => {
+        const repos = [...this.state.selectedRepos];
+        const index = repos.indexOf(repos.find(r => r.id === id));
+        repos.splice(index, 1);
+        this.setState({selectedRepos: repos});
+
+        const commits = {...this.props.commitHistory};
+        delete commits[id];
+        await this.props.updateCommitHistory(commits);
+    }
+
+
     render() {
         const { selectedRepos } = this.state;
-        const { t } = this.props;
 
         const Option = props => {
             return (
@@ -46,6 +57,7 @@ class Sidebar extends React.Component{
             <CreatableSelect
                 placeholder='Search a Github Repository...'
                 isClearable={false}
+                value={''}
                 styles={buildSelectStyle("normal")}
                 getOptionValue={option => option.id}
                 options={this.props.searchList}
@@ -53,10 +65,12 @@ class Sidebar extends React.Component{
                 onInputChange={this.handleInputChange}
                 onChange={option => {
                     option = {...option, color: getColor()}
-                    this.setState({selectedRepos: [...selectedRepos, option]})
+                    this.setState({selectedRepos: [...selectedRepos, option]});
                 }}
             />
-            {selectedRepos.map(repo => <ListItem key={repo.id} repo={repo} />)}
+            <StyledList>
+                {selectedRepos.map(repo => <ListItem key={repo.id} repo={repo} handleDelete={this.handleDelete} />)}
+            </StyledList>
         </StyledSidebar>
     }
 }
@@ -73,11 +87,22 @@ const SeachIconImg = styled.img`
     width: 16px;
 `
 
+const StyledList = styled.div`
+    &:hover > div {
+        opacity: 0.3;
+    }
+    > div: hover{
+        opacity: 1;
+    }
+`
+
 export default connect(
     state =>({
-        searchList: state.search.searchList
+        searchList: state.search.searchList,
+        commitHistory: state.search.commitHistory
     }),
     dispatch => ({
-        loadSearchList: dispatch.search.loadSearchList
+        loadSearchList: dispatch.search.loadSearchList,
+        updateCommitHistory: dispatch.search.updateCommitHistory
     })
 ) (withTranslation()(Sidebar));

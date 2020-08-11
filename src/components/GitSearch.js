@@ -1,11 +1,12 @@
 import React from "react";
 import styled from "styled-components";
 import Sidebar from "./Sidebar";
+import LineGraph from "./LineGraph";
 
 class GitSearch extends React.Component{
     render() {
         return <Wrapper>
-            <GraphBox>Git Search</GraphBox>
+            <GraphBox><LineGraph /></GraphBox>
             <Sidebar />
         </Wrapper>
     }
@@ -18,6 +19,11 @@ const Wrapper = styled.div`
     display: flex;
     flex-direction: row;
     font-size: 16px;
+    
+    .recharts-tooltip-wrapper{
+        top: -40px !important;
+        left: 0;
+    }
 `
 
 const GraphBox = styled.div`

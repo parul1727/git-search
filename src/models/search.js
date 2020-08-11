@@ -4,7 +4,8 @@ const search = {
     state: {
         searchList: [],
         cache: {},
-        commitHistory: {}
+        commitHistory: {},
+        commitColors: {}
     },
     reducers: {
         setSearchList: (state, searchList) => ({
@@ -22,8 +23,16 @@ const search = {
             ...state,
             commitHistory: {
                 ...state.commitHistory,
-                [commitHistory.key]: commitHistory.value
+                [commitHistory.key]: commitHistory.data
+            },
+            commitColors: {
+                ...state.commitColors,
+                [commitHistory.key]: commitHistory.color
             }
+        }),
+        updateCommitHistory: (state, commitHistory) => ({
+            ...state,
+            commitHistory
         }),
     },
     effects: (dispatch) => ({
@@ -49,9 +58,15 @@ const search = {
         },
 
         async getCommitHistory(repo, state) {
-            let resp = await axios.get(`https://api.github.com/repos/${repo.owner}/${repo.name}/stats/commit_activity`);
-            if (resp.data) {
-                this.setCommitHistory({key: repo.id, value: resp.data });
+            try {
+                let resp = await axios.get(`https://api.github.com/repos/${repo.owner}/${repo.name}/stats/commit_activity`);
+                if (resp.data) {
+                    await this.setCommitHistory({key: repo.id, data: resp.data, color: repo.color });
+                } else {
+                    await this.setCommitHistory({key: repo.id, data: [], color: repo.color });
+                }
+            } catch (err) {
+
             }
         }
     })

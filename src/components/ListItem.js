@@ -1,17 +1,18 @@
 import React from "react";
 import styled from "styled-components";
 import moment from 'moment';
-
-import IconStar from '../images/icon-star.svg';
-import { getColor } from "../helpers/index";
 import {connect} from "react-redux";
 import {withTranslation} from "react-i18next";
+
+import IconStar from '../images/icon-star.svg';
+import IconDelete from '../images/icon-delete.svg';
 
 class ListItem extends React.Component{
     constructor(props) {
         super(props);
         this.state = {
-            commits: 0
+            commits: 0,
+            showDelete: false
         }
         this.fetch(props);
     }
@@ -20,19 +21,37 @@ class ListItem extends React.Component{
         this.props.getCommitHistory(this.props.repo);
     }
 
+    componentDidUpdate(prevProps, prevState, snapshot) {
+        const { id } = this.props.repo;
+        if (this.props.commitHistory[id] && prevProps.commitHistory[id] !== this.props.commitHistory[id]) {
+            const commits = this.props.commitHistory[this.props.repo.id].reduce((total, c) => total += c.total, 0);
+            this.setState({ commits });
+        }
+    }
+
     render() {
-        const { label, pushedAt, color } = this.props.repo;
+        const { label, pushedAt, color, id } = this.props.repo;
         const user = label.substring(0, label.lastIndexOf("/"));
         const repo = label.substring(label.lastIndexOf("/") + 1, label.length);
-        return <Wrapper>
-            <ItemBorder color={color}></ItemBorder>
+        return <Wrapper
+            onMouseEnter={() => this.setState({showDelete: true})}
+            onMouseLeave={() => this.setState({showDelete: false})}
+        >
+            <ItemBorder color={color} alt=''></ItemBorder>
             <ItemWrapper>
-                <Label>{user} / <span>{repo}</span></Label>
-                <Info>
-                    <img src={IconStar}/>
-                    <Label><span>{this.props.totalCommits}</span></Label>
-                    <Label>{moment(pushedAt).fromNow()}</Label>
-                </Info>
+                <div>
+                    <Label>{user} / <span>{repo}</span></Label>
+                    <Info>
+                        <img src={IconStar}/>
+                        <Label><span>{this.state.commits}</span></Label>
+                        <Label>{moment(pushedAt).fromNow()}</Label>
+                    </Info>
+                </div>
+                {this.state.showDelete && <img src={IconDelete} onClick={(e) => {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    this.props.handleDelete(id)
+                }} />}
             </ItemWrapper>
         </Wrapper>
     }
@@ -42,6 +61,7 @@ const Wrapper = styled.div`
     display: flex;
     flex-direction: row;
     margin-top: 16px;
+    cursor: pointer;
 `
 
 const ItemBorder = styled.div`
@@ -52,7 +72,9 @@ const ItemBorder = styled.div`
 
 const ItemWrapper = styled.div`
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
     flex: 1;
     background: black;
     color: white;
@@ -61,6 +83,11 @@ const ItemWrapper = styled.div`
     box-sizing: border-box;
     position: relative;
     left: -2px;
+    
+    img{
+        height: 16px;
+        width: 16px;
+    }
 `
 
 const Label = styled.div`
@@ -87,13 +114,9 @@ const Info = styled.div`
 `
 
 export default connect(
-    (state, ownProps) => {
-        const commits = state.search.commitHistory[ownProps.repo.id] || [];
-        const totalCommits = commits.reduce((total, c) => total += c.total, 0);
-        return {
-            totalCommits
-        }
-    },
+    state => ({
+        commitHistory: state.search.commitHistory
+    }),
     dispatch => ({
         getCommitHistory: dispatch.search.getCommitHistory
     })
