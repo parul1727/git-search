@@ -2,7 +2,7 @@ Que: Describe the major design/build decisions and why you made them.
 Ans: I have changes the design based on mobile and tabled screen because graph was covering a very small screen. So, I moved the search component on top and graph below that both covering 100% width.
 
 Que: How long did the assignment take (in hours)? Please break down your answer into buckets (e.g. "Learning Framework", "Coding", "Debugging").
-Ans: 12 hours approx
+Ans: 12 hours approx (includes set up, development estimate, risk factor)
 
 Que: If you could go back and give yourself advice at the beginning of the project, what would it be?
 Ans: implement responsiveness in starting which I implemented later
