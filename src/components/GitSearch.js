@@ -21,8 +21,15 @@ const Wrapper = styled.div`
     font-size: 16px;
     
     .recharts-tooltip-wrapper{
-        top: -40px !important;
-        left: 0;
+        /*top: -40px !important;
+        left: 0;*/
+    }
+    .recharts-text.recharts-cartesian-axis-tick-value{
+        display: none;
+    }
+    
+    @media all and (max-width: 768px) {
+        flex-direction: column-reverse;
     }
 `
 

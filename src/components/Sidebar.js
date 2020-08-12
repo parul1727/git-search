@@ -13,7 +13,8 @@ class Sidebar extends React.Component{
     constructor() {
         super();
         this.state = {
-            selectedRepos: []
+            selectedRepos: [],
+            error: ''
         }
     }
     handleInputChange = (searchText) => {
@@ -64,10 +65,17 @@ class Sidebar extends React.Component{
                 components={{ Option, DropdownIndicator  }}
                 onInputChange={this.handleInputChange}
                 onChange={option => {
-                    option = {...option, color: getColor()}
-                    this.setState({selectedRepos: [...selectedRepos, option]});
+                    option = {...option, color: getColor()};
+                    this.setState({error: ''});
+                    const repo = this.state.selectedRepos.find(repo => repo.id === option.id);
+                    if (repo) {
+                        this.setState({error: this.props.t('Repository already added')});
+                    } else {
+                        this.setState({selectedRepos: [...selectedRepos, option]});
+                    }
                 }}
             />
+            {this.state.error && <ErrorText>{this.state.error}</ErrorText>}
             <StyledList>
                 {selectedRepos.map(repo => <ListItem key={repo.id} repo={repo} handleDelete={this.handleDelete} />)}
             </StyledList>
@@ -76,10 +84,13 @@ class Sidebar extends React.Component{
 }
 
 const StyledSidebar = styled.div`
-    width: 30%;
+    width: 400px;
     background: #37374A;
     padding: 24px;
     box-sizing: border-box;
+    @media all and (max-width: 768px) {
+         width: 100%;
+    }
 `;
 
 const SeachIconImg = styled.img`
@@ -94,6 +105,11 @@ const StyledList = styled.div`
     > div: hover{
         opacity: 1;
     }
+`
+
+const ErrorText = styled.div`
+    font-size: 12px;
+    color: red;
 `
 
 export default connect(

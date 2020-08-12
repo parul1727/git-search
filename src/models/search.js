@@ -5,7 +5,8 @@ const search = {
         searchList: [],
         cache: {},
         commitHistory: {},
-        commitColors: {}
+        commitColors: {},
+        hoveredItem: -1
     },
     reducers: {
         setSearchList: (state, searchList) => ({
@@ -33,6 +34,10 @@ const search = {
         updateCommitHistory: (state, commitHistory) => ({
             ...state,
             commitHistory
+        }),
+        setHoveredItem: (state, hoveredItem) => ({
+            ...state,
+            hoveredItem
         }),
     },
     effects: (dispatch) => ({

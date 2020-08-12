@@ -24,7 +24,7 @@ class ListItem extends React.Component{
     componentDidUpdate(prevProps, prevState, snapshot) {
         const { id } = this.props.repo;
         if (this.props.commitHistory[id] && prevProps.commitHistory[id] !== this.props.commitHistory[id]) {
-            const commits = this.props.commitHistory[this.props.repo.id].reduce((total, c) => total += c.total, 0);
+            const commits = this.props.commitHistory[id].reduce((total, c) => total += c.total, 0);
             this.setState({ commits });
         }
     }
@@ -34,8 +34,14 @@ class ListItem extends React.Component{
         const user = label.substring(0, label.lastIndexOf("/"));
         const repo = label.substring(label.lastIndexOf("/") + 1, label.length);
         return <Wrapper
-            onMouseEnter={() => this.setState({showDelete: true})}
-            onMouseLeave={() => this.setState({showDelete: false})}
+            onMouseEnter={() => {
+                this.setState({showDelete: true});
+                this.props.setHoveredItem(id);
+            }}
+            onMouseLeave={() => {
+                this.setState({showDelete: false});
+                this.props.setHoveredItem(-1);
+            }}
         >
             <ItemBorder color={color} alt=''></ItemBorder>
             <ItemWrapper>
@@ -44,7 +50,7 @@ class ListItem extends React.Component{
                     <Info>
                         <img src={IconStar}/>
                         <Label><span>{this.state.commits}</span></Label>
-                        <Label>{moment(pushedAt).fromNow()}</Label>
+                        <Label>{`${this.props.t('Updated')} ${moment(pushedAt).fromNow()}`}</Label>
                     </Info>
                 </div>
                 {this.state.showDelete && <img src={IconDelete} onClick={(e) => {
@@ -102,6 +108,7 @@ const Info = styled.div`
     display: flex;
     flex-direction: row;
     align-items: center;
+    flex-wrap: wrap;
     margin-top: 4px;
     box-sizing: border-box;
     img{
@@ -118,6 +125,7 @@ export default connect(
         commitHistory: state.search.commitHistory
     }),
     dispatch => ({
-        getCommitHistory: dispatch.search.getCommitHistory
+        getCommitHistory: dispatch.search.getCommitHistory,
+        setHoveredItem: dispatch.search.setHoveredItem
     })
 ) (withTranslation()(ListItem));

@@ -20,6 +20,9 @@ export const buildSelectStyle = (component) => ({
     placeholder: (base) => ({
         ...base,
         fontSize: '14px',
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
+        whiteSpace: 'noWrap'
     }),
     menu: (base) => ({
         ...base,

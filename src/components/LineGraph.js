@@ -4,52 +4,60 @@ import {connect} from "react-redux";
 import {withTranslation} from "react-i18next";
 import styled from "styled-components";
 import moment from "moment";
-import IconCommit from '../images/icon-commit.svg';
+import CommitIcon from "./common/CommitIcon";
 
 class LineGraph extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            data: 0
+            data: [],
+            graphHeight: 700,
+            graphWidth: window.innerWidth - 450,
+            margin: {top: 100, right: 50, left: 20, bottom: 55}
         }
+        this.handleResize = this.handleResize.bind(this);
+    }
+
+    componentDidMount() {
+        this.handleResize();
+        window.addEventListener('resize', this.handleResize);
     }
 
     componentDidUpdate(prevProps, prevState, snapshot) {
         if (this.props.commitHistory && prevProps.commitHistory !== this.props.commitHistory) {
             const {commitHistory} = this.props;
-            const data = Object.keys(commitHistory).reduce((data, key, ii) => {
-                const repo = commitHistory[key];
-                if (repo.length > 0) {
-                    repo.map(value => {
-                        if (data[value.week]) {
-                            data[value.week] = {
-                                ...data[value.week],
-                                [`total${ii}`]: value.total,
-                                [`id${ii}`]: key
-                            }
-                        } else {
-                            data[value.week] = {
-                                week: value.week,
-                                [`total${ii}`]: value.total,
-                                [`id${ii}`]: key
-                            }
-                        }
-                    });
-                }
-                return data;
-            }, {});
+            const data = Object.keys(commitHistory).map(key => ({
+                id: key,
+                data: commitHistory[key]
+            }));
             this.setState({data});
         }
+        window.addEventListener('resize', this.handleResize);
     }
-    render() {
-        const {commitHistory, commitColors} = this.props;
 
-        const CustomTooltip = ({ active, payload }) => {
+    componentWillUnmount() {
+        window.removeEventListener('resize', this.handleResize, false);
+    }
+
+    async handleResize() {
+        if (window.innerWidth <= 768) {
+            await this.setState({graphWidth: window.innerWidth, graphHeight: 500})
+        } else {
+            await this.setState({graphWidth: (window.innerWidth - 450), graphHeight: 700})
+        }
+    }
+
+    render() {
+        const {commitColors, hoveredItem} = this.props;
+
+        const CustomTooltip = ({ active, payload, label }) => {
             if (active && payload) {
                 return (
                     <StyledTooltip className="custom-tooltip">
-                        <div className="label">{`Week of ${moment.unix(payload[0].payload.week).format('ll')}`}</div>
-                        <div className="label icon"><img src={IconCommit} />{`${payload[0].value} commits`}</div>
+                        <div className="label">{`${this.props.t('Week of')} ${moment.unix(label).format('ll')}`}</div>
+                        {payload.map((p, ii) =>
+                            <div key={ii} className="label icon"><CommitIcon color={p.fill}/><span>{`${p.value} commits`}</span></div>
+                        )}
                     </StyledTooltip>
                 );
             }
@@ -57,28 +65,42 @@ class LineGraph extends React.Component {
             return null;
         };
 
+        if (this.state.data.length === 0) return '';
+
         return (
-            <LineChart width={900} height={600} data={Object.values(this.state.data)}
-                       margin={{top: 100, right: 50, left: 50, bottom: 55}}>
-                <XAxis/>
-                <YAxis/>
+            <LineChart width={this.state.graphWidth} height={this.state.graphHeight}
+                       margin={this.state.margin}>
+                <XAxis dataKey="week" allowDuplicatedCategory={false} />
+                <YAxis dataKey="total"/>
                 <Tooltip content={CustomTooltip}/>
-                {Object.keys(commitHistory).map((key, ii) => (
-                    <Line
-                        key={ii}
-                        connectNulls
-                        type="monotone"
-                        dataKey={`total${ii}`}
-                        stroke={commitColors[key]}
-                        fill={commitColors[key]}
-                        dot={{fill: 'none', r: 3, stroke: commitColors[key]}}
-                        activeDot={{fill: commitColors[key], r: 4}}
-                    />
-                ))}
+                {this.state.data.length  > 0 && this.state.data.map(s => {
+                    return (
+                        <Line
+                            dataKey="total"
+                            opacity={hoveredItem === -1 ? 1 : (hoveredItem == s.id ? 1 : 0.3)}
+                            stroke={commitColors[s.id]}
+                            fill={commitColors[s.id]}
+                            data={s.data}
+                            key={s.id}
+                            type="monotone"
+                            dot={{fill: 'white', r: 3, stroke: commitColors[s.id]}}
+                            activeDot={{fill: commitColors[s.id], r: 5}}
+                            isAnimationActive={false}
+                        />
+                    )
+                })}
             </LineChart>
         );
     }
 };
+
+const Wrapper = styled.div`
+    &.active{
+        .recharts-layer.recharts-line{
+            opacity: 0.5;
+        }
+    }
+`
 
 const StyledTooltip = styled.div`
     font-size: 13px;
@@ -89,12 +111,14 @@ const StyledTooltip = styled.div`
     justify-content: center;
     align-items: center;
     flex-direction: column;
-    
+
     .icon {
+        min-width: 75%;
         display: flex;
+        justify-content: start;
         align-items: center;
-        img {
-            margin-right: 8px;
+        svg {
+            margin-right: 10px;
         }
     }
 `
@@ -102,7 +126,8 @@ const StyledTooltip = styled.div`
 export default connect(
     state => ({
         commitHistory: state.search.commitHistory,
-        commitColors: state.search.commitColors
+        commitColors: state.search.commitColors,
+        hoveredItem: state.search.hoveredItem
     })
 ) (withTranslation()(LineGraph));
 
