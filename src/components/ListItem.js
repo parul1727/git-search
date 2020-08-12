@@ -23,7 +23,7 @@ class ListItem extends React.Component{
 
     componentDidUpdate(prevProps, prevState, snapshot) {
         const { id } = this.props.repo;
-        if (this.props.commitHistory[id] && prevProps.commitHistory[id] !== this.props.commitHistory[id]) {
+        if (this.props.commitHistory[id].length > 0 && prevProps.commitHistory[id] !== this.props.commitHistory[id]) {
             const commits = this.props.commitHistory[id].reduce((total, c) => total += c.total, 0);
             this.setState({ commits });
         }

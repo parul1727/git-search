@@ -71,7 +71,7 @@ const search = {
                     await this.setCommitHistory({key: repo.id, data: [], color: repo.color });
                 }
             } catch (err) {
-
+                await this.setCommitHistory({key: repo.id, data: [], color: repo.color });
             }
         }
     })
