@@ -16,12 +16,14 @@ class Sidebar extends React.Component{
             selectedRepos: [],
             error: ''
         }
+        this.handleInputChange = this.handleInputChange.bind(this);
+        this.handleDelete = this.handleDelete.bind(this);
     }
-    handleInputChange = (searchText) => {
+    handleInputChange(searchText) {
         this.props.loadSearchList(searchText);
     }
 
-    handleDelete = async (id) => {
+    async handleDelete (id) {
         const repos = [...this.state.selectedRepos];
         const index = repos.indexOf(repos.find(r => r.id === id));
         repos.splice(index, 1);
@@ -56,7 +58,7 @@ class Sidebar extends React.Component{
 
         return <StyledSidebar>
             <CreatableSelect
-                placeholder='Search a Github Repository...'
+                placeholder={this.props.t('Search a Github Repository...')}
                 isClearable={false}
                 value={''}
                 styles={buildSelectStyle("normal")}
@@ -74,6 +76,7 @@ class Sidebar extends React.Component{
                         this.setState({selectedRepos: [...selectedRepos, option]});
                     }
                 }}
+                noOptionsMessage={() => this.props.t('no search result')}
             />
             {this.state.error && <ErrorText>{this.state.error}</ErrorText>}
             <StyledList>

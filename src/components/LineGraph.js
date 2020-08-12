@@ -48,15 +48,15 @@ class LineGraph extends React.Component {
     }
 
     render() {
-        const {commitColors, hoveredItem} = this.props;
+        const {commitColors, hoveredItem, t} = this.props;
 
         const CustomTooltip = ({ active, payload, label }) => {
             if (active && payload) {
                 return (
                     <StyledTooltip className="custom-tooltip">
-                        <div className="label">{`${this.props.t('Week of')} ${moment.unix(label).format('ll')}`}</div>
+                        <div className="label">{`${t('Week of')} ${moment.unix(label).format('ll')}`}</div>
                         {payload.map((p, ii) =>
-                            <div key={ii} className="label icon"><CommitIcon color={p.fill}/><span>{`${p.value} commits`}</span></div>
+                            <div key={ii} className="label icon"><CommitIcon color={p.fill}/><span>{`${p.value} ${t('commits')}`}</span></div>
                         )}
                     </StyledTooltip>
                 );
